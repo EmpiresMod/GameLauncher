@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/TheCreeper/launcher/manifest"
+	"github.com/EmpiresMod/GameLauncher/manifest"
 )
 
 var (
