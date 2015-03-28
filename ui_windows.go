@@ -3,8 +3,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/AllenDang/gform"
 	"github.com/AllenDang/w32"
 )
@@ -26,7 +24,7 @@ func ShowGUI() (err error) {
 	mw.SetSize(440, 100)
 	mw.EnableSizable(false)
 	mw.EnableMaxButton(false)
-	mw.SetCaption("EmpiresMod Launcher")
+	mw.SetCaption("Empires Launcher")
 	mw.Bind(w32.WM_CLOSE, mw.btnClose_onclick)
 	mw.Show()
 
@@ -57,7 +55,8 @@ func (mw *MainWindow) btnVanilla_onclick(arg *gform.EventArg) {
 
 	if err := ApplyAndLaunch("EmpiresVanilla"); err != nil {
 
-		log.Fatal(err)
+		gform.MsgBox(arg.Sender().Parent(), "Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
+		return
 	}
 
 	mw.Form.ControlBase.Close()
@@ -68,7 +67,8 @@ func (mw *MainWindow) btnCommunity_onclick(arg *gform.EventArg) {
 
 	if err := ApplyAndLaunch("CommunityScripts"); err != nil {
 
-		log.Fatal(err)
+		gform.MsgBox(arg.Sender().Parent(), "Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
+		return
 	}
 
 	mw.Form.ControlBase.Close()

@@ -21,7 +21,7 @@ var (
 func init() {
 
 	flag.BoolVar(&Update, "u", true, "Check for updates.")
-	flag.StringVar(&UpdateURL, "url", "https://apollo.firebit.co.uk/~dc0/game", "The URL to fetch updates from.")
+	flag.StringVar(&UpdateURL, "url", "http://apollo.firebit.co.uk/~dc0/game", "The URL to fetch updates from.")
 	flag.StringVar(&DirPath, "p", "./", "Path to empires folder.")
 	flag.StringVar(&Content, "e", "", "Specify the content to download and enable.")
 	flag.Parse()
