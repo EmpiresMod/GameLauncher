@@ -2,6 +2,8 @@ package manifest
 
 import (
 	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 type Update struct {
@@ -27,6 +29,11 @@ func (u *Update) Update() (err error) {
 
 		b, err := getRemoteFile(u.URL)
 		if err != nil {
+
+			return err
+		}
+
+		if err = os.MkdirAll(filepath.Dir(u.Path), DirectoryPerm); err != nil {
 
 			return err
 		}

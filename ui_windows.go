@@ -55,7 +55,7 @@ func (mw *MainWindow) btnVanilla_onclick(arg *gform.EventArg) {
 
 	if err := ApplyAndLaunch("EmpiresVanilla"); err != nil {
 
-		gform.MsgBox(arg.Sender().Parent(), "Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
+		gform.MsgBox(arg.Sender().Parent(), "Fatal Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
 		return
 	}
 
@@ -67,7 +67,7 @@ func (mw *MainWindow) btnCommunity_onclick(arg *gform.EventArg) {
 
 	if err := ApplyAndLaunch("CommunityScripts"); err != nil {
 
-		gform.MsgBox(arg.Sender().Parent(), "Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
+		gform.MsgBox(arg.Sender().Parent(), "Fatal Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
 		return
 	}
 
