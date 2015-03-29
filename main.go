@@ -16,7 +16,6 @@ var (
 	UpdateURL string
 	DirPath   string
 	Content   string
-	Test      string
 )
 
 func init() {
