@@ -21,7 +21,7 @@ func ShowGUI() (err error) {
 
 	mw := NewWindow()
 	mw.Center()
-	mw.SetSize(445, 105)
+	mw.SetSize(440, 100)
 	mw.EnableSizable(true)
 	mw.EnableMaxButton(false)
 	mw.SetCaption("Empires Launcher")

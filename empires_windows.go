@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"os/exec"
-)
+import "os/exec"
 
 func LaunchEmpires() (err error) {
 
@@ -17,8 +14,7 @@ func LaunchEmpires() (err error) {
 
 func LaunchEmpiresConnect(ip, password string) (err error) {
 
-	ipPassword := fmt.Sprintf("%s/%s", ip, password)
-	if err = exec.Command("cmd", "/c", "START", "steam://connect/"+ipPassword).Start(); err != nil {
+	if err = exec.Command("cmd", "/c", "START", "steam://connect/"+ip+"/"+password).Start(); err != nil {
 
 		return
 	}
