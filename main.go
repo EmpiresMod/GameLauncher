@@ -20,39 +20,24 @@ var (
 
 func init() {
 
-	flag.BoolVar(&Update, "u", true, "Check for updates.")
-	flag.StringVar(&UpdateURL, "url", "http://apollo.firebit.co.uk/~dc0/game", "The URL to fetch updates from.")
-	flag.StringVar(&DirPath, "p", "./", "Path to empires folder.")
-	flag.StringVar(&Content, "e", "", "Specify the content to download and enable.")
+	flag.BoolVar(&Update, "u", true, "Check for updates")
+	flag.StringVar(&UpdateURL, "url", "http://apollo.firebit.co.uk/~dc0/game", "The URL to fetch the manfiest and content from")
+	flag.StringVar(&DirPath, "p", "./", "Path to the empires folder")
+	flag.StringVar(&Content, "c", "", "The names of the content to download and install. Names should be seperated by a comma")
 	flag.Parse()
 }
 
 func main() {
 
-	if Update {
-
-		// Update the launcher
-		/*up := manifest.NewUpdate()
-		up.Path = filepath.Join(DirPath, "launcher.exe")
-		up.URL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "launcher.exe")
-
-		if err := up.Update(); err != nil {
-
-			log.Fatal(err)
-		}*/
-
-		// Update the manifest
-		up := manifest.NewUpdate()
-		up.Path = filepath.Join(DirPath, "manifest.json")
-		up.URL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
-
-		if err := up.Update(); err != nil {
-
-			log.Fatal(err)
-		}
-	}
-
 	if len(Content) != 0 {
+
+		if Update {
+
+			if err := UpdateManifest(); err != nil {
+
+				log.Fatal(err)
+			}
+		}
 
 		if err := ApplyAndLaunch(Content); err != nil {
 
@@ -64,6 +49,20 @@ func main() {
 
 		log.Fatal(err)
 	}
+}
+
+func UpdateManifest() (err error) {
+
+	up := manifest.NewUpdate()
+	up.Path = filepath.Join(DirPath, "manifest.json")
+	up.URL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
+
+	if err := up.Update(); err != nil {
+
+		return err
+	}
+
+	return
 }
 
 func ApplyAndLaunch(c string) (err error) {
