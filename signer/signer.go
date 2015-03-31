@@ -1,4 +1,4 @@
-package manifest
+package signer
 
 import (
 	"crypto"
@@ -9,6 +9,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/EmpiresMod/GameLauncher/checksum"
 )
 
 func ParsePublicPEM(b []byte) (pub *rsa.PublicKey, err error) {
@@ -41,7 +43,7 @@ func ParseFilePublicPEM(filename string) (pub *rsa.PublicKey, err error) {
 
 func VerifyCryptoSignature(r io.Reader, sig []byte, pub *rsa.PublicKey) (err error) {
 
-	hash, err := GenerateCheckSum(r)
+	hash, err := checksum.GenerateCheckSum(r)
 	if err != nil {
 
 		return

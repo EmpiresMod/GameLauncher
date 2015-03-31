@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/EmpiresMod/GameLauncher/manifest"
+	"github.com/EmpiresMod/GameLauncher/update"
 )
 
 var (
@@ -53,7 +54,7 @@ func main() {
 
 func UpdateManifest() (err error) {
 
-	up := manifest.NewUpdate()
+	up := update.New()
 	up.TargetPath = filepath.Join(DirPath, "manifest.json")
 	up.TargetURL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
 

@@ -1,4 +1,4 @@
-package manifest
+package checksum
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ func GenerateFileCheckSum(filename string) (hash []byte, err error) {
 	return GenerateCheckSum(f)
 }
 
-func CompareCheckSums(a, b []byte) (ok bool) {
+func Compare(a, b []byte) (ok bool) {
 
 	return bytes.Equal(a, b)
 }

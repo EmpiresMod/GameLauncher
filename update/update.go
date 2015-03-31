@@ -1,4 +1,4 @@
-package manifest
+package update
 
 import (
 	"errors"
@@ -7,6 +7,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+)
+
+const (
+	FilePerm      = 0640
+	DirectoryPerm = 0750
 )
 
 type Update struct {
@@ -18,7 +23,7 @@ type Update struct {
 	TargetURL string
 }
 
-func NewUpdate() *Update {
+func New() *Update {
 
 	return new(Update)
 }

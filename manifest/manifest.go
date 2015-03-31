@@ -8,6 +8,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+
+	"github.com/EmpiresMod/GameLauncher/checksum"
+	//"github.com/EmpiresMod/GameLauncher/signer"
+	"github.com/EmpiresMod/GameLauncher/update"
 )
 
 const (
@@ -23,6 +27,9 @@ type Manifest struct {
 
 	// Base file path
 	basePath string
+
+	// Encoded public key
+	pemBytes []byte
 
 	// array holding defentions of files
 	Files []File
@@ -172,20 +179,20 @@ func (m *Manifest) Apply(name string) (err error) {
 
 			if fileExists(filepath.Join(m.basePath, v.Path)) {
 
-				hash, err := GenerateFileCheckSum(v.Path)
+				hash, err := checksum.GenerateFileCheckSum(v.Path)
 				if err != nil {
 
 					return err
 				}
 
-				if CompareCheckSums([]byte(v.Checksum), hash) {
+				if checksum.Compare([]byte(v.Checksum), hash) {
 
 					continue
 				}
 
 			}
 
-			up := NewUpdate()
+			up := update.New()
 			up.TargetPath = filepath.Join(m.basePath, v.Path)
 			up.TargetURL = fmt.Sprintf("%s/%s/%s", m.baseURL, runtime.GOOS, v.Path)
 
