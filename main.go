@@ -73,7 +73,7 @@ func ApplyAndLaunch(c string) (err error) {
 		return
 	}
 
-	for _, v := range strings.Split(c+",Gameinfo", ",") {
+	for _, v := range strings.Split(c, ",") {
 
 		if err = m.Apply(v); err != nil {
 
