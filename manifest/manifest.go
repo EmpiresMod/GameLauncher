@@ -170,10 +170,24 @@ func (m *Manifest) Apply(name string) (err error) {
 
 		if len(v.Path) != 0 {
 
+			if fileExists(filepath.Join(m.basePath, v.Path)) {
+
+				hash, err := GenerateFileCheckSum(v.Path)
+				if err != nil {
+
+					return err
+				}
+
+				if CompareCheckSums([]byte(v.Checksum), hash) {
+
+					continue
+				}
+
+			}
+
 			up := NewUpdate()
 			up.TargetPath = filepath.Join(m.basePath, v.Path)
 			up.TargetURL = fmt.Sprintf("%s/%s/%s", m.baseURL, runtime.GOOS, v.Path)
-			up.Checksum = v.Checksum
 
 			if err = up.Update(); err != nil {
 

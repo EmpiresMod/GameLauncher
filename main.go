@@ -57,9 +57,9 @@ func UpdateManifest() (err error) {
 	up.TargetPath = filepath.Join(DirPath, "manifest.json")
 	up.TargetURL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
 
-	if err := up.Update(); err != nil {
+	if err = up.Update(); err != nil {
 
-		return err
+		return
 	}
 
 	return

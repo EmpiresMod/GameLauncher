@@ -16,9 +16,6 @@ type Update struct {
 
 	// URL of update
 	TargetURL string
-
-	// Hash of file
-	Checksum string
 }
 
 func NewUpdate() *Update {
@@ -73,7 +70,19 @@ func (u *Update) GetRemoteSize() (int64, error) {
 
 func (u *Update) Update() (err error) {
 
-	if !fileExists(u.TargetPath) {
+	size, err := u.GetFileSize()
+	if err != nil {
+
+		return err
+	}
+
+	rsize, err := u.GetRemoteSize()
+	if err != nil {
+
+		return err
+	}
+
+	if size != rsize {
 
 		b, err := u.Fetch()
 		if err != nil {
@@ -82,59 +91,6 @@ func (u *Update) Update() (err error) {
 		}
 
 		if err = os.MkdirAll(filepath.Dir(u.TargetPath), DirectoryPerm); err != nil {
-
-			return err
-		}
-
-		if err = ioutil.WriteFile(u.TargetPath, b, FilePerm); err != nil {
-
-			return err
-		}
-
-		return nil
-	}
-
-	if len(u.Checksum) == 0 {
-
-		size, err := u.GetFileSize()
-		if err != nil {
-
-			return err
-		}
-
-		rsize, err := u.GetRemoteSize()
-		if err != nil {
-
-			return err
-		}
-
-		if size != rsize {
-
-			b, err := u.Fetch()
-			if err != nil {
-
-				return err
-			}
-
-			if err = ioutil.WriteFile(u.TargetPath, b, FilePerm); err != nil {
-
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	hash, err := GenerateFileCheckSum(u.TargetPath)
-	if err != nil {
-
-		return err
-	}
-
-	if CompareCheckSums(hash, []byte(u.Checksum)) {
-
-		b, err := u.Fetch()
-		if err != nil {
 
 			return err
 		}
