@@ -39,6 +39,9 @@ type File struct {
 	// Can this file be disabled?
 	CanDisable bool
 
+	// array of other files this depends on
+	Depends []string
+
 	// array of conflicting custom content if any
 	Conflicts []string
 
@@ -46,7 +49,7 @@ type File struct {
 	Path string
 
 	// File hash sum
-	HashSum string
+	Checksum string
 }
 
 func (m *Manifest) Disable(name string) (err error) {
@@ -168,9 +171,9 @@ func (m *Manifest) Apply(name string) (err error) {
 		if len(v.Path) != 0 {
 
 			up := NewUpdate()
-			up.Path = filepath.Join(m.basePath, v.Path)
-			up.URL = fmt.Sprintf("%s/%s/%s", m.baseURL, runtime.GOOS, v.Path)
-			up.Sha256 = v.HashSum
+			up.TargetPath = filepath.Join(m.basePath, v.Path)
+			up.TargetURL = fmt.Sprintf("%s/%s/%s", m.baseURL, runtime.GOOS, v.Path)
+			up.Checksum = v.Checksum
 
 			if err = up.Update(); err != nil {
 

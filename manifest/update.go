@@ -1,7 +1,10 @@
 package manifest
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -9,13 +12,13 @@ import (
 type Update struct {
 
 	// Path to file
-	Path string
+	TargetPath string
 
 	// URL of update
-	URL string
+	TargetURL string
 
 	// Hash of file
-	Sha256 string
+	Checksum string
 }
 
 func NewUpdate() *Update {
@@ -23,22 +26,67 @@ func NewUpdate() *Update {
 	return new(Update)
 }
 
+func (u *Update) Fetch() (b []byte, err error) {
+
+	resp, err := http.Get(u.TargetURL)
+	if err != nil {
+
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+
+		return nil, errors.New(fmt.Sprintf("Remote server returned status code >= 400: %s", resp.Status))
+	}
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func (u *Update) GetFileSize() (size int64, err error) {
+
+	f, err := os.Stat(u.TargetPath)
+	if err != nil {
+
+		return
+	}
+
+	return f.Size(), nil
+}
+
+func (u *Update) GetRemoteSize() (int64, error) {
+
+	resp, err := http.Get(u.TargetURL)
+	if err != nil {
+
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+
+		return 0, fmt.Errorf("Remote server returned status code >= 400: %s", resp.Status)
+	}
+
+	return resp.ContentLength, nil
+}
+
 func (u *Update) Update() (err error) {
 
-	if !fileExists(u.Path) {
+	if !fileExists(u.TargetPath) {
 
-		b, err := getRemoteFile(u.URL)
+		b, err := u.Fetch()
 		if err != nil {
 
 			return err
 		}
 
-		if err = os.MkdirAll(filepath.Dir(u.Path), DirectoryPerm); err != nil {
+		if err = os.MkdirAll(filepath.Dir(u.TargetPath), DirectoryPerm); err != nil {
 
 			return err
 		}
 
-		if err = ioutil.WriteFile(u.Path, b, FilePerm); err != nil {
+		if err = ioutil.WriteFile(u.TargetPath, b, FilePerm); err != nil {
 
 			return err
 		}
@@ -46,15 +94,15 @@ func (u *Update) Update() (err error) {
 		return nil
 	}
 
-	if len(u.Sha256) == 0 {
+	if len(u.Checksum) == 0 {
 
-		size, err := getFileSize(u.Path)
+		size, err := u.GetFileSize()
 		if err != nil {
 
 			return err
 		}
 
-		rsize, err := getRemoteFileSize(u.URL)
+		rsize, err := u.GetRemoteSize()
 		if err != nil {
 
 			return err
@@ -62,13 +110,13 @@ func (u *Update) Update() (err error) {
 
 		if size != rsize {
 
-			b, err := getRemoteFile(u.URL)
+			b, err := u.Fetch()
 			if err != nil {
 
 				return err
 			}
 
-			if err = ioutil.WriteFile(u.Path, b, FilePerm); err != nil {
+			if err = ioutil.WriteFile(u.TargetPath, b, FilePerm); err != nil {
 
 				return err
 			}
@@ -77,20 +125,21 @@ func (u *Update) Update() (err error) {
 		return nil
 	}
 
-	h, err := fileHash(u.Path)
+	hash, err := GenerateFileCheckSum(u.TargetPath)
 	if err != nil {
 
 		return err
 	}
-	if h != u.Sha256 {
 
-		b, err := getRemoteFile(u.URL)
+	if CompareCheckSums(hash, []byte(u.Checksum)) {
+
+		b, err := u.Fetch()
 		if err != nil {
 
 			return err
 		}
 
-		if err = ioutil.WriteFile(u.Path, b, FilePerm); err != nil {
+		if err = ioutil.WriteFile(u.TargetPath, b, FilePerm); err != nil {
 
 			return err
 		}
