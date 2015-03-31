@@ -54,8 +54,8 @@ func main() {
 func UpdateManifest() (err error) {
 
 	up := manifest.NewUpdate()
-	up.Path = filepath.Join(DirPath, "manifest.json")
-	up.URL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
+	up.TargetPath = filepath.Join(DirPath, "manifest.json")
+	up.TargetURL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
 
 	if err := up.Update(); err != nil {
 

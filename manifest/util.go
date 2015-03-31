@@ -2,9 +2,9 @@ package manifest
 
 import "os"
 
-func fileExists(path string) bool {
+func fileExists(filename string) bool {
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
 
 		return false
 	}

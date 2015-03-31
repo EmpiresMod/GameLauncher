@@ -20,9 +20,9 @@ func GenerateCheckSum(r io.Reader) (hash []byte, err error) {
 	return hasher.Sum(nil), nil
 }
 
-func GenerateFileCheckSum(p string) (hash []byte, err error) {
+func GenerateFileCheckSum(filename string) (hash []byte, err error) {
 
-	f, err := os.Open(p)
+	f, err := os.Open(filename)
 	if err != nil {
 
 		return
