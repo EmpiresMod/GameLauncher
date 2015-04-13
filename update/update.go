@@ -1,26 +1,48 @@
 package update
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
+
+	//"github.com/EmpiresMod/GameLauncher/signer"
+	"github.com/EmpiresMod/GameLauncher/checksum"
 )
 
 const (
-	FilePerm      = 0640
-	DirectoryPerm = 0750
+	FilePerm       = 0640
+	DirectoryPerm  = 0750
+	CheckSumPostix = ".sha256"
+	TempPostix     = ".tmp"
 )
+
+// Error represents an Error reported in the HTTP session.
+type Error struct {
+
+	// Error message
+	HTTPStatus string
+
+	// The request sent to the server
+	Request string
+}
+
+// Error returns a string representation of the HTTP error
+func (e *Error) Error() string {
+
+	return fmt.Sprintf("update: %s %s\n", e.HTTPStatus, e.Request)
+}
 
 type Update struct {
 
 	// Path to file
-	TargetPath string
+	FileName string
 
 	// URL of update
-	TargetURL string
+	URL string
+
+	// Checksum of remote file
+	CheckSum []byte
 }
 
 func New() *Update {
@@ -30,7 +52,7 @@ func New() *Update {
 
 func (u *Update) Fetch() (b []byte, err error) {
 
-	resp, err := http.Get(u.TargetURL)
+	resp, err := http.Get(u.URL)
 	if err != nil {
 
 		return
@@ -39,71 +61,80 @@ func (u *Update) Fetch() (b []byte, err error) {
 
 	if resp.StatusCode >= 400 {
 
-		return nil, errors.New(fmt.Sprintf("Remote server returned status code >= 400: %s", resp.Status))
+		return nil, &Error{resp.Status, u.URL}
 	}
 
 	return ioutil.ReadAll(resp.Body)
 }
 
-func (u *Update) GetFileSize() (size int64, err error) {
+func (u *Update) GetCheckSum() ([]byte, error) {
 
-	f, err := os.Stat(u.TargetPath)
+	resp, err := http.Get(u.URL + CheckSumPostix)
 	if err != nil {
 
-		return
-	}
-
-	return f.Size(), nil
-}
-
-func (u *Update) GetRemoteSize() (int64, error) {
-
-	resp, err := http.Get(u.TargetURL)
-	if err != nil {
-
-		return 0, err
+		return nil, nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 
-		return 0, fmt.Errorf("Remote server returned status code >= 400: %s", resp.Status)
+		return nil, &Error{resp.Status, u.URL}
 	}
 
-	return resp.ContentLength, nil
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+
+		return nil, err
+	}
+
+	return bytes.Fields(b)[0], nil
+}
+
+// Check for updates to file. Returns true for updates and false for no updates
+func (u *Update) Check() (ok bool, err error) {
+
+	if !fileExists(u.FileName) {
+
+		ok = true
+		return
+	}
+
+	a, err := checksum.GenerateFileCheckSum(u.FileName)
+	if err != nil {
+
+		return
+	}
+
+	if len(u.CheckSum) == 0 {
+
+		u.CheckSum, err = u.GetCheckSum()
+		if err != nil {
+
+			return
+		}
+	}
+
+	if checksum.Compare(a, u.CheckSum) {
+
+		ok = false
+		return
+	}
+
+	ok = true
+	return
 }
 
 func (u *Update) Update() (err error) {
 
-	size, err := u.GetFileSize()
+	b, err := u.Fetch()
 	if err != nil {
 
-		return err
+		return
 	}
 
-	rsize, err := u.GetRemoteSize()
-	if err != nil {
+	if err = ioutil.WriteFile(u.FileName, b, FilePerm); err != nil {
 
-		return err
-	}
-
-	if size != rsize {
-
-		b, err := u.Fetch()
-		if err != nil {
-
-			return err
-		}
-
-		if err = os.MkdirAll(filepath.Dir(u.TargetPath), DirectoryPerm); err != nil {
-
-			return err
-		}
-
-		if err = ioutil.WriteFile(u.TargetPath, b, FilePerm); err != nil {
-
-			return err
-		}
+		return
 	}
 
 	return

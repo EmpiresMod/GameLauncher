@@ -1,5 +1,3 @@
-// +build !ui
-
 package main
 
 import (
@@ -59,6 +57,12 @@ func (mw *MainWindow) mainWin_onShow(arg *gform.EventArg) {
 		gform.MsgBox(arg.Sender().Parent(), "Fatal Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
 		return
 	}
+
+	if err := UpdateExecutable(); err != nil {
+
+		gform.MsgBox(arg.Sender().Parent(), "Fatal Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
+		return
+	}
 }
 
 func (mw *MainWindow) btnVanilla_onClick(arg *gform.EventArg) {
@@ -75,7 +79,7 @@ func (mw *MainWindow) btnVanilla_onClick(arg *gform.EventArg) {
 
 func (mw *MainWindow) btnCommunity_onClick(arg *gform.EventArg) {
 
-	if err := ApplyAndLaunch("CommunityScripts"); err != nil {
+	if err := ApplyAndLaunch("Gameinfo,CommunityScripts,CommunityScriptsPresets"); err != nil {
 
 		gform.MsgBox(arg.Sender().Parent(), "Fatal Error", err.Error(), w32.MB_OK|w32.MB_ICONERROR)
 		return

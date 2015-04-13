@@ -3,6 +3,7 @@ package checksum
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"os"
 )
@@ -17,7 +18,10 @@ func GenerateCheckSum(r io.Reader) (hash []byte, err error) {
 		return
 	}
 
-	return hasher.Sum(nil), nil
+	hash = make([]byte, sha256.BlockSize)
+	hex.Encode(hash, hasher.Sum(nil))
+
+	return hash, nil
 }
 
 func GenerateFileCheckSum(filename string) (hash []byte, err error) {
@@ -34,5 +38,5 @@ func GenerateFileCheckSum(filename string) (hash []byte, err error) {
 
 func Compare(a, b []byte) (ok bool) {
 
-	return bytes.Equal(a, b)
+	return bytes.EqualFold(a, b)
 }

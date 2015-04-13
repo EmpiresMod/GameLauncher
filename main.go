@@ -2,21 +2,24 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"path/filepath"
-	"runtime"
-	"strings"
-
-	"github.com/EmpiresMod/GameLauncher/manifest"
-	"github.com/EmpiresMod/GameLauncher/update"
 )
 
 var (
-	Update    bool
+	// Debug/Verbose switch
+	Verbose bool
+
+	// Update switch
+	Update bool
+
+	// Where can updates be found?
 	UpdateURL string
-	DirPath   string
-	Content   string
+
+	// Directory path where files are updated.
+	DirPath string
+
+	// What content to load/update.
+	Content string
 )
 
 func init() {
@@ -38,54 +41,23 @@ func main() {
 
 				log.Fatal(err)
 			}
+
+			if err := UpdateExecutable(); err != nil {
+
+				log.Fatal(err)
+			}
 		}
 
 		if err := ApplyAndLaunch(Content); err != nil {
 
 			log.Fatal(err)
 		}
+
+		return
 	}
 
 	if err := ShowGUI(); err != nil {
 
 		log.Fatal(err)
 	}
-}
-
-func UpdateManifest() (err error) {
-
-	up := update.New()
-	up.TargetPath = filepath.Join(DirPath, "manifest.json")
-	up.TargetURL = fmt.Sprintf("%s/%s/%s", UpdateURL, runtime.GOOS, "manifest.json")
-
-	if err = up.Update(); err != nil {
-
-		return
-	}
-
-	return
-}
-
-func ApplyAndLaunch(c string) (err error) {
-
-	m, err := manifest.GetManifest(filepath.Join(DirPath, "manifest.json"), DirPath, UpdateURL)
-	if err != nil {
-
-		return
-	}
-
-	for _, v := range strings.Split(c, ",") {
-
-		if err = m.Apply(v); err != nil {
-
-			return
-		}
-	}
-
-	if err = LaunchEmpires(); err != nil {
-
-		return
-	}
-
-	return
 }

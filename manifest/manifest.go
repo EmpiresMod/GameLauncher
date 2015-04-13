@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"runtime"
 
-	"github.com/EmpiresMod/GameLauncher/checksum"
-	//"github.com/EmpiresMod/GameLauncher/signer"
 	"github.com/EmpiresMod/GameLauncher/update"
 )
 
@@ -23,13 +21,13 @@ const (
 type Manifest struct {
 
 	// Base URL
-	baseURL string
+	BaseURL string `json:"-"`
 
 	// Base file path
-	basePath string
+	BasePath string `json:"-"`
 
 	// Encoded public key
-	pemBytes []byte
+	PemBytes []byte `json:"-"`
 
 	// array holding defentions of files
 	Files []File
@@ -56,7 +54,7 @@ type File struct {
 	Path string
 
 	// File hash sum
-	Checksum string
+	CheckSum string
 }
 
 func (m *Manifest) Disable(name string) (err error) {
@@ -79,8 +77,8 @@ func (m *Manifest) Disable(name string) (err error) {
 			continue
 		}
 
-		oldPath := filepath.Join(m.basePath, v.Path)
-		newPath := filepath.Join(m.basePath, v.Path+DisabledPostfix)
+		oldPath := filepath.Join(m.BasePath, v.Path)
+		newPath := filepath.Join(m.BasePath, v.Path+DisabledPostfix)
 
 		if !fileExists(oldPath) {
 
@@ -116,8 +114,8 @@ func (m *Manifest) Enable(name string) (err error) {
 			continue
 		}
 
-		oldPath := filepath.Join(m.basePath, v.Path+DisabledPostfix)
-		newPath := filepath.Join(m.basePath, v.Path)
+		oldPath := filepath.Join(m.BasePath, v.Path+DisabledPostfix)
+		newPath := filepath.Join(m.BasePath, v.Path)
 
 		if !fileExists(oldPath) {
 
@@ -145,7 +143,7 @@ func (m *Manifest) Apply(name string) (err error) {
 		// Is a directory?
 		if v.IsDir {
 
-			path := filepath.Join(m.basePath, v.Path)
+			path := filepath.Join(m.BasePath, v.Path)
 			if !fileExists(path) {
 
 				if err = os.MkdirAll(path, DirectoryPerm); err != nil {
@@ -167,7 +165,7 @@ func (m *Manifest) Apply(name string) (err error) {
 		}
 
 		// Check if its disabled
-		if fileExists(filepath.Join(m.basePath, v.Path+DisabledPostfix)) {
+		if fileExists(filepath.Join(m.BasePath, v.Path+DisabledPostfix)) {
 
 			if err = m.Enable(name); err != nil {
 
@@ -177,28 +175,23 @@ func (m *Manifest) Apply(name string) (err error) {
 
 		if len(v.Path) != 0 {
 
-			if fileExists(filepath.Join(m.basePath, v.Path)) {
+			up := update.New()
+			up.FileName = filepath.Join(m.BasePath, v.Path)
+			up.URL = fmt.Sprintf("%s/%s/%s", m.BaseURL, runtime.GOOS, v.Path)
+			up.CheckSum = []byte(v.CheckSum)
 
-				hash, err := checksum.GenerateFileCheckSum(v.Path)
-				if err != nil {
+			ok, err := up.Check()
+			if err != nil {
+
+				return err
+			}
+
+			if ok {
+
+				if err = up.Update(); err != nil {
 
 					return err
 				}
-
-				if checksum.Compare([]byte(v.Checksum), hash) {
-
-					continue
-				}
-
-			}
-
-			up := update.New()
-			up.TargetPath = filepath.Join(m.basePath, v.Path)
-			up.TargetURL = fmt.Sprintf("%s/%s/%s", m.baseURL, runtime.GOOS, v.Path)
-
-			if err = up.Update(); err != nil {
-
-				return
 			}
 		}
 	}
@@ -206,9 +199,9 @@ func (m *Manifest) Apply(name string) (err error) {
 	return
 }
 
-func GetManifest(path, basepath, baseurl string) (m *Manifest, err error) {
+func GetManifest(filename, path, url string) (m *Manifest, err error) {
 
-	b, err := ioutil.ReadFile(path)
+	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 
 		return
@@ -219,8 +212,8 @@ func GetManifest(path, basepath, baseurl string) (m *Manifest, err error) {
 
 		return
 	}
-	m.basePath = basepath
-	m.baseURL = baseurl
+	m.BasePath = path
+	m.BaseURL = url
 
 	return
 }
