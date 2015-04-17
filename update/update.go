@@ -6,15 +6,16 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	//"github.com/EmpiresMod/GameLauncher/signer"
 	"github.com/EmpiresMod/GameLauncher/checksum"
+	//"github.com/EmpiresMod/GameLauncher/signer"
 )
 
 const (
-	FilePerm       = 0640
-	DirectoryPerm  = 0750
-	CheckSumPostix = ".sha256"
-	TempPostix     = ".tmp"
+	FilePerm         = 0640
+	DirectoryPerm    = 0750
+	CheckSumPostix   = ".sha256"
+	TempPostix       = ".tmp"
+	SignatirePostfix = ".sig"
 )
 
 // Error represents an Error reported in the HTTP session.
@@ -43,6 +44,9 @@ type Update struct {
 
 	// Checksum of remote file
 	CheckSum []byte
+
+	// Signature of file
+	Signature []byte
 }
 
 func New() *Update {
@@ -56,6 +60,23 @@ func (u *Update) Fetch() (b []byte, err error) {
 	if err != nil {
 
 		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+
+		return nil, &Error{resp.Status, u.URL}
+	}
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+func (u *Update) GetSignature() ([]byte, error) {
+
+	resp, err := http.Get(u.URL + SignatirePostfix)
+	if err != nil {
+
+		return nil, nil
 	}
 	defer resp.Body.Close()
 

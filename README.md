@@ -15,4 +15,4 @@ Usage of bin/launcher:
 
 ## Installation
 
-This should be installed into the first Empires folder (steam/common/Empires) and also be added as a non-steam game.
+This should be installed into the first Empires folder (steam/common/Empires not steam/common/Empires/empires) and also be added as a non-steam game.
